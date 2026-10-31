@@ -61,7 +61,7 @@ fetch(f"https://raw.githubusercontent.com/denoland/deno/{deno_version}/LICENSE.m
 # Homebrew is used on the build machine only for source URLs and SHA256 metadata.
 formulae = json.loads(subprocess.check_output(["brew", "info", "--json=v2", "lame", "opus", "ffmpeg"]))["formulae"]
 manifest = {"yt-dlp": yt_version, "deno": deno_version, "sources": []}
-env = dict(os.environ, MACOSX_DEPLOYMENT_TARGET="14.0")
+env = dict(os.environ, MACOSX_DEPLOYMENT_TARGET="14.0", ac_cv_prog_cc_c23="no", CFLAGS="-O2 -Wno-implicit-function-declaration")
 env["PKG_CONFIG_PATH"] = str(PREFIX / "lib/pkgconfig")
 env["PKG_CONFIG_LIBDIR"] = str(PREFIX / "lib/pkgconfig")
 jobs = str(min(os.cpu_count() or 2, 4))
@@ -79,7 +79,7 @@ for name in ["lame", "opus", "ffmpeg"]:
     src = next(p for p in dest.iterdir() if p.is_dir())
     manifest["sources"].append({"name": name, "version": formula["versions"]["stable"], "url": stable["url"], "sha256": stable["checksum"], "license": formula["license"]})
     if name == "lame":
-        run(["./configure", "--prefix=" + str(PREFIX), "--disable-shared", "--enable-static", "--disable-frontend"], src, env)
+        run(["./configure", "--prefix=" + str(PREFIX), "--disable-shared", "--enable-static", "--disable-frontend", "--disable-decoder"], src, env)
     elif name == "opus":
         run(["./configure", "--prefix=" + str(PREFIX), "--disable-shared", "--enable-static", "--disable-extra-programs", "--disable-doc"], src, env)
     else:
