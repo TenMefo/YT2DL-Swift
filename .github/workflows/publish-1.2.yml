@@ -1,0 +1,35 @@
+name: Publish All-in-One 1.2
+on:
+  push:
+    paths:
+      - .github/workflows/publish-1.2.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: YT2DL-All-in-One-Apple-Silicon
+          run-id: 41254128103
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: dist
+      - name: Publish verified standalone app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: TenMefo/YT2DL-Swift
+        run: |
+          cat > release-notes.md <<'NOTES'
+          ## 1.2.0
+          - Tryb lokalny zaznaczony przy uruchomieniu.
+          - Przycisk Pobierz i potwierdzenie Dodano do kolejki.
+          - Format MP4 (domyslny) oraz MKV, bez ponownej kompresji.
+          - Zachowanie ustawien i historii ze starszej wersji.
+          - Wszystkie narzedzia wbudowane. Bez bibliotek, Homebrew i terminala.
+          Validation: 11 unit tests and standalone bundle tests, including MP4 remux.
+          NOTES
+          gh release create v1.2.0 dist/YT2DL-All-in-One-macOS.zip --target 2ed79283cc9bc9ea11c7277cf6345a94f42c5d33 --title "YT2DL 1.2.0 — MP4 and download improvements" --notes-file release-notes.md
+
