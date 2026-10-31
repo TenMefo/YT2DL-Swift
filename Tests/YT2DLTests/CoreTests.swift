@@ -44,3 +44,33 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(Links.safeName("  "), "video")
     }
 }
+
+final class MP4Tests: XCTestCase {
+    func testOldSettingsDecodeWithoutLosingFolder() throws {
+        let original = Options()
+        let data = try JSONEncoder().encode(original)
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        json.removeValue(forKey: "videoContainer")
+        json["folder"] = "/tmp/previous downloads"
+        let migrated = try JSONDecoder().decode(Options.self, from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertEqual(migrated.container, .mp4)
+        XCTAssertEqual(migrated.folder, "/tmp/previous downloads")
+    }
+    func testMP4ForVideoWithAudioAndVideoOnly() {
+        let video = Video(videoId: "abcdefghijk", title: "Film", thumbnail: "", author: "", duration: 0, viewCount: 0)
+        for mode in [MediaMode.movie, .silent] {
+            var o = Options(); o.mode = mode; o.videoContainer = .mp4
+            let args = LocalEngine.arguments(Job(video: video, options: o))
+            XCTAssertTrue(args.contains("--remux-video"))
+            XCTAssertEqual(args[args.firstIndex(of: "--remux-video")! + 1], "mp4")
+            XCTAssertTrue(args.contains { $0.contains("ext=mp4") })
+            if mode == .movie { XCTAssertTrue(args.contains { $0.contains("bestaudio[ext=m4a]") }) }
+        }
+    }
+    func testMKVRemainsAvailable() {
+        let video = Video(videoId: "abcdefghijk", title: "Film", thumbnail: "", author: "", duration: 0, viewCount: 0)
+        var o = Options(); o.videoContainer = .mkv
+        let args = LocalEngine.arguments(Job(video: video, options: o))
+        XCTAssertEqual(args[args.firstIndex(of: "--merge-output-format")! + 1], "mkv")
+    }
+}

@@ -1,15 +1,16 @@
 name: macOS All-in-One
 on: [push, pull_request, workflow_dispatch]
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 30
+    env:
+      RUNTIME_ARCHIVE_URL: https://github.com/TenMefo/YT2DL-Swift/releases/download/v1.1.0/YT2DL-All-in-One-macOS.zip
+      RUNTIME_ARCHIVE_SHA256: 58d3fcf59c2ffa995e20c43cd4c09620cde781428d786aebfb720ee505c78365
     steps:
       - uses: actions/checkout@v4
-      - name: Build prerequisites (CI only)
-        run: brew install pkgconf nasm
       - name: Tests
         run: swift test
       - name: Build standalone app and verify bundled tools
@@ -19,3 +20,13 @@ jobs:
           name: YT2DL-All-in-One-Apple-Silicon
           path: dist/YT2DL-All-in-One-macOS.zip
           compression-level: 0
+      - name: Publish new application version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" dist/YT2DL.app/Contents/Info.plist)
+          if ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release create "v$VERSION" dist/YT2DL-All-in-One-macOS.zip --target "$GITHUB_SHA" --title "YT2DL $VERSION — All-in-One" --notes-file CHANGELOG.md
+          fi
+

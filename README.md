@@ -7,14 +7,14 @@ Natywna aplikacja macOS 14+ dla Apple Silicon. Wklej link, sprawdź podgląd i p
 2. Rozpakuj i przeciągnij YT2DL.app do folderu Aplikacje.
 3. Otwórz aplikację i wklej link do filmu lub playlisty.
 
-Pakiet zawiera yt-dlp, FFmpeg, FFprobe oraz Deno. Narzędzia działają bez systemowych bibliotek Homebrew i są odnajdywane względem aktualnego położenia aplikacji. Domyślnie aplikacja korzysta z wbudowanego silnika. Nie pobiera instalatorów przy pierwszym uruchomieniu.
+Pakiet zawiera yt-dlp, FFmpeg, FFprobe oraz Deno. Narzędzia działają bez systemowych bibliotek Homebrew i są odnajdywane względem aktualnego położenia aplikacji. Przy uruchomieniu domyślnie zaznaczony jest tryb lokalny. MP4 jest domyślnym formatem wideo. Przycisk „Pobierz” dodaje materiały do kolejki i pokazuje potwierdzenie. Nie pobiera instalatorów przy pierwszym uruchomieniu.
 
 Paczka podpisana ad hoc nie ma notaryzacji Apple. Pierwsze uruchomienie może wymagać zezwolenia w ustawieniach Prywatność i ochrona. Pełne usunięcie tego komunikatu wymaga podpisu Developer ID i notaryzacji właściciela.
 
 ## Funkcje
 - Wiele linków, usuwanie duplikatów i podgląd miniatur, tytułów, autorów i czasu trwania.
 - Wybór filmów z playlisty, limit podglądu do 1000 pozycji.
-- Wideo z dźwiękiem do 4K (MKV), samo wideo lub audio MP3/M4A/Opus/FLAC.
+- Wideo z dźwiękiem do 4K (MP4 lub MKV), samo wideo lub audio MP3/M4A/Opus/FLAC.
 - Metadane, miniatury, napisy PL/EN.
 - Kolejka sekwencyjna, anulowanie, ponawianie, historia i otwieranie plików w Finderze.
 - Strumieniowy zapis na dysk; film nie jest przechowywany w RAM.

@@ -27,8 +27,16 @@ enum LocalEngine {
             "--print", "after_move:FILE:%(filepath)s", "-P", o.folder, "-o", "%(title).150B [%(id)s].%(ext)s"]
         switch o.mode {
         case .audio: a += ["-f", "bestaudio/best", "-x", "--audio-format", o.audioFormat]
-        case .movie: a += ["-f", "bestvideo[height<=\(o.height)]+bestaudio/best[height<=\(o.height)]", "--merge-output-format", "mkv"]
-        case .silent: a += ["-f", "bestvideo[height<=\(o.height)]"]
+        case .movie:
+            let format = o.container == .mp4
+                ? "bestvideo[ext=mp4][vcodec^=avc1][height<=\(o.height)]+bestaudio[ext=m4a]/best[ext=mp4][height<=\(o.height)]/bestvideo[ext=mp4][height<=\(o.height)]+bestaudio[ext=m4a]"
+                : "bestvideo[height<=\(o.height)]+bestaudio/best[height<=\(o.height)]"
+            a += ["-f", format, "--merge-output-format", o.container.rawValue, "--remux-video", o.container.rawValue]
+        case .silent:
+            let format = o.container == .mp4
+                ? "bestvideo[ext=mp4][vcodec^=avc1][height<=\(o.height)]/bestvideo[ext=mp4][height<=\(o.height)]"
+                : "bestvideo[height<=\(o.height)]"
+            a += ["-f", format, "--remux-video", o.container.rawValue]
         }
         if o.metadata { a += ["--embed-metadata"] }
         if o.subtitles { a += ["--write-subs", "--write-auto-subs", "--sub-langs", "pl,en", "--sub-format", "srt/best"] }

@@ -30,3 +30,4 @@ jobs:
           Unzip and move YT2DL.app to Applications. Ad-hoc signed; Apple notarization is not included.
           NOTES
           gh release create v1.1.0 dist/YT2DL-All-in-One-macOS.zip --target 88f41d828bb77e105cbdefabe9dfd7c70fc261d4 --title "YT2DL 1.1.0 — All-in-One" --notes-file release-notes.md
+

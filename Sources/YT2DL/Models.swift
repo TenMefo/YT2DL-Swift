@@ -6,6 +6,7 @@ enum AppError: LocalizedError {
 }
 enum Engine: String, Codable, CaseIterable { case local = "Lokalnie · playlisty", server = "Serwer yt2dl" }
 enum MediaMode: String, Codable, CaseIterable { case movie = "Wideo i dźwięk", audio = "Tylko audio", silent = "Wideo bez dźwięku" }
+enum VideoContainer: String, Codable, CaseIterable { case mp4 = "mp4", mkv = "mkv" }
 struct Options: Codable, Equatable {
     var engine = Engine.local
     var server = "http://localhost:3000"
@@ -13,6 +14,8 @@ struct Options: Codable, Equatable {
     var mode = MediaMode.movie
     var height = 1080
     var audioFormat = "mp3"
+    var videoContainer: VideoContainer? = .mp4
+    var container: VideoContainer { videoContainer ?? .mp4 }
     var subtitles = false
     var metadata = true
     var thumbnail = false

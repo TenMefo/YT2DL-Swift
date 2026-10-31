@@ -38,6 +38,18 @@ struct ContentView: View {
             .toolbar { ToolbarItem { Button { s.chooseFolder() } label: { Label("Folder docelowy", systemImage: "folder") } } }
         }
         .frame(minWidth: 960, minHeight: 640)
+        .overlay(alignment: .bottom) {
+            if let message = s.queueConfirmation {
+                HStack(spacing: 14) {
+                    Label(message, systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    Button("Pokaż kolejkę") { s.page = "Kolejka"; s.queueConfirmation = nil }
+                    Button { s.queueConfirmation = nil } label: { Image(systemName: "xmark") }
+                        .buttonStyle(.plain).accessibilityLabel("Zamknij komunikat")
+                }
+                .padding(16).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .shadow(radius: 8).padding(20)
+            }
+        }
         .tint(.indigo)
         .alert("Nie udało się wykonać operacji", isPresented: Binding(get: { s.error != nil }, set: { if !$0 { s.error = nil } })) {
             Button("OK") { s.error = nil }
@@ -96,7 +108,7 @@ struct ContentView: View {
                     }.listStyle(.plain)
                 }
                 Button { s.enqueue() } label: {
-                    Label("Dodaj do kolejki (\(s.selected.count))", systemImage: "arrow.down.to.line").frame(maxWidth: .infinity).padding(5)
+                    Label("Pobierz (\(s.selected.count))", systemImage: "arrow.down.to.line").frame(maxWidth: .infinity).padding(5)
                 }.buttonStyle(.borderedProminent).disabled(s.selected.isEmpty || s.busy)
             }.padding(24).frame(minWidth: 440)
             SettingsView(compact: true).frame(minWidth: 280, idealWidth: 300, maxWidth: 350)
@@ -164,7 +176,10 @@ struct SettingsView: View {
                         Picker("Maks. jakość", selection: $s.options.height) {
                             ForEach([360, 480, 720, 1080, 1440, 2160], id: \.self) { Text("\($0)p").tag($0) }
                         }
-                        Text("Wideo z audio: MKV, bez ponownej kompresji. Jakość zależy od źródła.").font(.caption).foregroundStyle(.secondary)
+                        Picker("Format wideo", selection: Binding(get: { s.options.container }, set: { s.options.videoContainer = $0 })) {
+                            ForEach(VideoContainer.allCases, id: \.self) { Text($0.rawValue.uppercased()).tag($0) }
+                        }
+                        Text("MP4 preferuje obraz H.264 i audio AAC. MKV pozwala wybrać najlepsze dostępne kodeki. Jakość zależy od źródła; zapis bez ponownej kompresji.").font(.caption).foregroundStyle(.secondary)
                     } else {
                         Picker("Format audio", selection: $s.options.audioFormat) {
                             ForEach(["mp3", "m4a", "opus", "flac"], id: \.self) { Text($0.uppercased()).tag($0) }
@@ -196,7 +211,7 @@ struct SettingsView: View {
             }
             if !compact {
                 Section("O aplikacji") {
-                    Text("YT2DL · 1.1.0 All-in-One\nNatywny klient macOS dla ipincamp/yt2dl z wbudowanym silnikiem pobierania.")
+                    Text("YT2DL · 1.2.0 All-in-One\nNatywny klient macOS dla ipincamp/yt2dl z wbudowanym silnikiem pobierania.")
                     Button("Licencje i składniki") {
                         NSWorkspace.shared.open(Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/ThirdParty"))
                     }

@@ -28,4 +28,7 @@ mkdir "$TEST_DIR/Folder with spaces"
 cp -R "$APP" "$TEST_DIR/Folder with spaces/YT2DL.app"
 "$TEST_DIR/Folder with spaces/YT2DL.app/Contents/Helpers/yt-dlp" --version
 "$TEST_DIR/Folder with spaces/YT2DL.app/Contents/Helpers/ffmpeg" -version
-echo "Standalone bundle verification passed"
+"$TOOLS/ffmpeg" -v error -i "$TEST_DIR/input.wav" -c:a aac "$TEST_DIR/audio.m4a"
+"$TOOLS/ffmpeg" -v error -i "$TEST_DIR/audio.m4a" -c copy -movflags +faststart "$TEST_DIR/output.mp4"
+"$TOOLS/ffprobe" -v error -show_entries format=format_name -of default=nw=1 "$TEST_DIR/output.mp4" | grep -q mp4
+echo "Standalone bundle verification passed (including MP4)"

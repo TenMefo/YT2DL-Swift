@@ -13,6 +13,7 @@ import AppKit
     @Published var paused = false
     @Published var error: String?
     @Published var notice = ""
+    @Published var queueConfirmation: String?
     private var inspector: ProcessRunner?
     private var activeRunner: ProcessRunner?
     private var activeDownload: ServerDownload?
@@ -23,6 +24,7 @@ import AppKit
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("YT2DL")
         historyURL = folder.appendingPathComponent("history.json")
         options = UserDefaults.standard.data(forKey: "options").flatMap { try? JSONDecoder().decode(Options.self, from: $0) } ?? Options()
+        options.engine = .local
         if let data = try? Data(contentsOf: historyURL), let stored = try? JSONDecoder().decode([Job].self, from: data) {
             jobs = stored.map { var j = $0; if j.state == .running || j.state == .waiting { j.state = .cancelled; j.detail = "Przerwano przy zamknięciu aplikacji. Możesz ponowić." }; return j }
         }
@@ -73,7 +75,13 @@ import AppKit
             if options.engine == .server && format == nil { error = "Brak formatu dla wybranego trybu. Zmień tryb lub użyj pobierania lokalnego."; continue }
             jobs.append(Job(video: video, options: options, format: format)); added += 1
         }
-        notice = "Dodano do kolejki: \(added)."; save(); pump()
+        if added > 0 {
+            queueConfirmation = "Dodano do kolejki: \(added)."
+            notice = queueConfirmation!
+        } else if error == nil {
+            notice = "Wybrane materiały są już w kolejce."
+        }
+        save(); pump()
     }
     func pump() {
         guard activeID == nil, !paused, let index = jobs.firstIndex(where: { $0.state == .waiting }) else { return }
