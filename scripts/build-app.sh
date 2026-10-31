@@ -13,13 +13,15 @@ cat > dist/YT2DL.app/Contents/Info.plist <<'PLIST'
 <key>CFBundleIdentifier</key><string>pl.mefosoft.yt2dl</string>
 <key>CFBundleName</key><string>YT2DL</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.0.0</string>
-<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.1.0</string>
+<key>CFBundleVersion</key><string>2</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
 </dict></plist>
 PLIST
-codesign --force --deep --sign - dist/YT2DL.app
-ditto -c -k --sequesterRsrc --keepParent dist/YT2DL.app dist/YT2DL-macOS.zip
-echo "Gotowe: dist/YT2DL.app i dist/YT2DL-macOS.zip"
+python3 scripts/prepare-tools.py
+codesign --force --sign - dist/YT2DL.app
+bash scripts/verify-bundle.sh dist/YT2DL.app
+ditto -c -k --sequesterRsrc --keepParent dist/YT2DL.app dist/YT2DL-All-in-One-macOS.zip
+echo "Gotowe: dist/YT2DL.app i dist/YT2DL-All-in-One-macOS.zip"

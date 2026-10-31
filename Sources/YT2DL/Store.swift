@@ -84,7 +84,7 @@ import AppKit
                 try FileManager.default.createDirectory(atPath: job.options.folder, withIntermediateDirectories: true)
                 if job.options.engine == .local {
                     let runner = ProcessRunner(); activeRunner = runner
-                    _ = try await runner.run(job.options.executable, LocalEngine.arguments(job)) { [weak self] line in
+                    _ = try await runner.run(try BundledTools.executable(options: job.options), LocalEngine.arguments(job)) { [weak self] line in
                         Task { @MainActor in self?.update(id, line: line) }
                     }
                 } else {

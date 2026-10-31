@@ -2,12 +2,12 @@ import Foundation
 
 enum LocalEngine {
     static func common(_ o: Options) -> [String] {
-        var args = ["--ignore-config", "--no-warnings"]
+        var args = ["--ignore-config", "--no-warnings"] + BundledTools.arguments
         if !o.cookieBrowser.isEmpty { args += ["--cookies-from-browser", o.cookieBrowser] }
         return args
     }
     static func inspect(_ link: String, options o: Options, runner: ProcessRunner) async throws -> [Video] {
-        let data = try await runner.run(o.executable, common(o) + ["--dump-single-json", "--flat-playlist", "--playlist-end", String(o.limit), "--skip-download", "--", link])
+        let data = try await runner.run(try BundledTools.executable(options: o), common(o) + ["--dump-single-json", "--flat-playlist", "--playlist-end", String(o.limit), "--skip-download", "--", link])
         let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
         let entries = root["entries"] as? [[String: Any]] ?? [root]
         return entries.compactMap { item in

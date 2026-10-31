@@ -13,12 +13,13 @@ final class ProcessRunner: @unchecked Sendable {
                 p.executableURL = URL(fileURLWithPath: executable)
                 p.arguments = arguments
                 var env = ProcessInfo.processInfo.environment
-                env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + (env["PATH"] ?? "")
+                env["PATH"] = BundledTools.directory.path + ":/usr/bin:/bin:/usr/sbin:/sbin"
+                env["DENO_NO_UPDATE_CHECK"] = "1"
                 p.environment = env; p.standardOutput = output; p.standardError = error
                 self.lock.lock()
                 if self.cancelled { self.lock.unlock(); continuation.resume(throwing: CancellationError()); return }
                 self.process = p
-                do { try p.run(); self.lock.unlock() } catch { self.lock.unlock(); continuation.resume(throwing: AppError.message("Nie można uruchomić yt-dlp. Sprawdź ścieżkę w ustawieniach. \(error.localizedDescription)")); return }
+                do { try p.run(); self.lock.unlock() } catch { self.lock.unlock(); continuation.resume(throwing: AppError.message("Nie można uruchomić silnika pobierania. \(error.localizedDescription)")); return }
                 let group = DispatchGroup()
                 let buffer = LockedData()
                 group.enter()

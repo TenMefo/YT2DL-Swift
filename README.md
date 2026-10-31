@@ -1,45 +1,43 @@
-# YT2DL Swift
-Natywna aplikacja SwiftUI dla macOS 14+, jako frontend do [ipincamp/yt2dl](https://github.com/ipincamp/yt2dl). Dodatkowy lokalny silnik yt-dlp obsługuje playlisty i prywatne listy użytkownika.
+# YT2DL Swift — All-in-One
+Natywna aplikacja macOS 14+ dla Apple Silicon. Wklej link, sprawdź podgląd i pobierz.
+**Bez Homebrew, Pythona, terminala, instalowania bibliotek ani osobnego serwera.**
+
+## Instalacja użytkownika
+1. Pobierz paczkę YT2DL-All-in-One-macOS.zip.
+2. Rozpakuj i przeciągnij YT2DL.app do folderu Aplikacje.
+3. Otwórz aplikację i wklej link do filmu lub playlisty.
+
+Pakiet zawiera yt-dlp, FFmpeg, FFprobe oraz Deno. Narzędzia działają bez systemowych bibliotek Homebrew i są odnajdywane względem aktualnego położenia aplikacji. Domyślnie aplikacja korzysta z wbudowanego silnika. Nie pobiera instalatorów przy pierwszym uruchomieniu.
+
+Paczka podpisana ad hoc nie ma notaryzacji Apple. Pierwsze uruchomienie może wymagać zezwolenia w ustawieniach Prywatność i ochrona. Pełne usunięcie tego komunikatu wymaga podpisu Developer ID i notaryzacji właściciela.
 
 ## Funkcje
-- Wklejanie wielu linków, walidacja adresów i usuwanie duplikatów.
-- Podgląd miniatur, tytułów, autorów i czasu trwania, zaznaczanie wybranych filmów.
-- Serwer yt2dl: rzeczywiste API /api/video-info i /api/download, formaty grupowane jako bundle, audio, video.
-- Lokalnie: playlisty, limit podglądu 10–1000, jakość do 4K, audio MP3/M4A/Opus/FLAC, metadane, miniatury i napisy PL/EN.
-- Opcjonalny odczyt sesji Chrome/Firefox/Safari przez yt-dlp dla prywatnych playlist, np. Do obejrzenia. Bez zapisywania haseł w aplikacji.
-- Sekwencyjna kolejka, anulowanie, ponawianie, wstrzymanie startu następnych zadań, historia i otwieranie plików w Finderze.
-- Zapis bez buforowania filmów w pamięci. Lokalnie pobiera yt-dlp, a tryb serwera używa URLSessionDownloadTask.
-- Ustawienia są zapamiętywane, a każde zadanie zachowuje własny zestaw opcji.
+- Wiele linków, usuwanie duplikatów i podgląd miniatur, tytułów, autorów i czasu trwania.
+- Wybór filmów z playlisty, limit podglądu do 1000 pozycji.
+- Wideo z dźwiękiem do 4K (MKV), samo wideo lub audio MP3/M4A/Opus/FLAC.
+- Metadane, miniatury, napisy PL/EN.
+- Kolejka sekwencyjna, anulowanie, ponawianie, historia i otwieranie plików w Finderze.
+- Strumieniowy zapis na dysk; film nie jest przechowywany w RAM.
+- Prywatne playlisty przez opcjonalną sesję Chrome/Firefox/Safari. System może poprosić o dostęp.
+- Opcjonalny tryb zewnętrznego serwera [ipincamp/yt2dl](https://github.com/ipincamp/yt2dl), dla zaawansowanych. Nie jest potrzebny do zwykłego działania.
 
-## Uruchomienie — lokalnie
-1. Zainstaluj Xcode / Command Line Tools i Homebrew.
-2. W Terminalu wykonaj: **brew install yt-dlp ffmpeg**.
-3. Otwórz Package.swift w Xcode i uruchom schemat YT2DL lub wykonaj **swift run**.
-4. Sprawdź ścieżkę yt-dlp w ustawieniach: Apple Silicon /opt/homebrew/bin/yt-dlp, Intel /usr/local/bin/yt-dlp.
-5. Wklej link, pokaż podgląd, wybierz materiały i dodaj do kolejki.
+Biblioteka YouTube nie jest pojedynczą playlistą — wklej link do konkretnej listy, np. Do obejrzenia. Niektóre filmy, metadane lub napisy mogą być niedostępne. Jakość zależy od źródła.
 
-Do aktualnych mechanizmów YouTube yt-dlp może wymagać dodatkowego środowiska JavaScript (np. **brew install deno**); zobacz oficjalne wymagania yt-dlp. W razie błędów ekstrakcji zaktualizuj silnik przez Homebrew.
+## Aktualizacje
+Wbudowane silniki są dostarczane wraz z kolejnymi wersjami aplikacji. Po zmianach YouTube może być potrzebna aktualizacja całej aplikacji. Program nie modyfikuje podpisanego pakietu w tle.
 
-## Tryb serwera yt2dl
-Uruchom backend zgodnie z jego README, wybierz „Serwer yt2dl” i ustaw adres, np. http://localhost:3000. Backend wymaga Node.js >=22. Nie jest wbudowany ani uruchamiany automatycznie. Do serwera zdalnego używaj HTTPS.
+## Budowanie — wyłącznie dla dewelopera
+Otwórz Package.swift w Xcode lub użyj swift run do pracy nad interfejsem. Kompletne wydanie buduje polecenie **bash scripts/build-app.sh**.
 
-**Istotna różnica:** README upstream pokazuje inne pola niż jego bieżący kod. Ten klient implementuje rzeczywistą odpowiedź thumbnail i formats.bundle/video/audio, a nie przykładową płaską tablicę z README.
+Build wymaga Xcode, Python 3, Homebrew, pkgconf i nasm. Skrypt pobiera standalone yt-dlp oraz Deno z oficjalnych wydań, weryfikuje SHA256 i buduje niezależny, statyczny FFmpeg z LAME i Opus. Homebrew dostarcza wyłącznie metadane źródeł na maszynie budującej — użytkownik aplikacji go nie potrzebuje.
 
-Serwer upstream nie udostępnia API playlist, logowania, scalania wybranych strumieni, konwersji do MP3 ani dodatkowych opcji. W tym trybie wybiera się tylko format faktycznie udostępniony przez backend. Tryb „Wideo i dźwięk” pokazuje wyłącznie formaty bundle; nie oznacza to dostępności 1080p lub 4K. Do tych funkcji wybierz silnik lokalny.
+Workflow macOS buduje pakiet All-in-One i uruchamia testy z PATH ograniczonym do narzędzi systemowych. Sprawdza start wszystkich narzędzi, konwersję WAV do MP3 i Opus, FFprobe, podpis oraz przeniesienie aplikacji do ścieżki ze spacjami.
 
-## Biblioteka i playlisty
-Wklej adres konkretnej playlisty (także list=WL), nie ogólną stronę Biblioteka. Prywatne listy wymagają zalogowania w wybranej przeglądarce i zgody systemu na dostęp do jej danych. Obsługa zależy od YouTube, yt-dlp oraz uprawnień macOS. Podgląd playlist jest płaski, więc część metadanych może nie być dostępna. Limit podglądu jest widoczny w interfejsie; zwiększ go przed ponownym wczytaniem większej listy.
+## Licencje
+Kod klienta: MIT. Dodatkowe programy zachowują własne licencje. FFmpeg jest budowany z wyłączonym GPL i nonfree; do paczki dołączane są źródła FFmpeg/LAME/Opus oraz dokładny skrypt budowania. Deno: MIT. Samodzielne wydanie yt-dlp macOS stanowi dystrybucję GPLv3+ ze składnikami opisanymi w upstream THIRD_PARTY_LICENSES. Licencje i źródła znajdują się wewnątrz aplikacji: Ustawienia → Licencje i składniki.
 
-## Budowanie aplikacji
-W katalogu repozytorium wykonaj **swift test**, następnie **bash scripts/build-app.sh**.
+## Tryb zewnętrznego serwera
+Klient wykorzystuje rzeczywisty kontrakt API yt2dl: thumbnail oraz formats.bundle/video/audio. Serwer upstream nie ma API playlist ani konwersji MP3; te opcje zapewnia silnik wbudowany. Serwer nie jest dołączany ani wymagany.
 
-Wynik: dist/YT2DL.app oraz dist/YT2DL-macOS.zip. Przeciągnij aplikację do Applications. Build lokalny jest podpisany ad hoc; dystrybucja bez ostrzeżeń Gatekeeper wymaga Developer ID i notaryzacji właściciela. yt-dlp i ffmpeg są zależnościami zewnętrznymi. Workflow GitHub Actions buduje i publikuje ZIP jako artefakt po pushu.
-
-## Zachowanie kolejki
-Wstrzymanie kolejki pozwala dokończyć bieżące zadanie. Anulowanie lokalne zachowuje plik częściowy; ponowienie korzysta z mechanizmu kontynuacji yt-dlp. Pobrania serwerowe po ponowieniu zaczynają się od początku. Po ponownym uruchomieniu przerwane zadania wymagają kliknięcia „Ponów”. Historia jest w ~/Library/Application Support/YT2DL/history.json; „Wyczyść historię” usuwa tylko wpisy, nie pobrane pliki. Format wideo lokalnego to MKV (scalanie bez ponownej kompresji).
-
-## Testy i granice weryfikacji
-Testy obejmują kontrakt odpowiedzi upstream, argumenty silnika, odrzucanie fałszywych domen, duplikaty, nazwy plików oraz obsługę procesów i anulowania. Nie zastępują testu pobierania z działającego backendu/YouTube; usługa może wymagać logowania, aktualizacji ekstraktora lub odmówić dostępu.
-
-## Licencja i pochodzenie
-Nowy, niezależnie napisany klient komunikujący się przez HTTP oraz CLI. Kod backendu yt2dl nie jest kopiowany ani dołączany. Backend ipincamp/yt2dl: GPL-3.0, autor ipincamp. yt-dlp i ffmpeg zachowują własne licencje. Kod klienta: MIT, zobacz LICENSE.
+## Historia i kolejka
+Wstrzymanie kolejki pozwala dokończyć bieżące zadanie. Anulowanie lokalne zachowuje plik częściowy. Ponowienie korzysta z kontynuacji yt-dlp. Historia: ~/Library/Application Support/YT2DL/history.json. Jej wyczyszczenie nie usuwa plików. Zadania przerwane przy zamknięciu aplikacji można ponowić ręcznie.

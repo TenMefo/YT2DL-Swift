@@ -1,15 +1,21 @@
-name: macOS
+name: macOS All-in-One
 on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: macos-15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Build prerequisites (CI only)
+        run: brew install pkgconf nasm
       - name: Tests
         run: swift test
-      - name: Build application
+      - name: Build standalone app and verify bundled tools
         run: bash scripts/build-app.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: YT2DL-macOS
-          path: dist/YT2DL-macOS.zip
+          name: YT2DL-All-in-One-Apple-Silicon
+          path: dist/YT2DL-All-in-One-macOS.zip
+          compression-level: 0

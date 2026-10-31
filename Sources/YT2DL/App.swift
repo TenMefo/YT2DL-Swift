@@ -152,10 +152,9 @@ struct SettingsView: View {
                     TextField("Adres serwera", text: $s.options.server)
                     Text("Uruchom serwer ipincamp/yt2dl. Playlisty wymagają trybu lokalnego.").font(.caption).foregroundStyle(.secondary)
                 } else {
-                    TextField("Ścieżka yt-dlp", text: $s.options.executable)
-                    Label(FileManager.default.isExecutableFile(atPath: s.options.executable) ? "yt-dlp jest dostępny" : "Zainstaluj yt-dlp i ffmpeg", systemImage: FileManager.default.isExecutableFile(atPath: s.options.executable) ? "checkmark.circle" : "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Text("Instalacja w Terminalu:\nbrew install yt-dlp ffmpeg\n\nNa Macu Intel zwykle użyj /usr/local/bin/yt-dlp.").font(.caption).textSelection(.enabled)
+                    Label(BundledTools.available ? "Wszystko gotowe do pobierania" : "Niekompletny pakiet aplikacji", systemImage: BundledTools.available ? "checkmark.circle.fill" : "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(BundledTools.available ? .green : .orange)
+                    Text("Silnik pobierania, obsługa dźwięku i wideo są wbudowane. Nie musisz nic instalować.").font(.caption).foregroundStyle(.secondary)
                 }
             }
             Section("Co zapisać") {
@@ -197,7 +196,10 @@ struct SettingsView: View {
             }
             if !compact {
                 Section("O aplikacji") {
-                    Text("YT2DL · 1.0.0\nNatywny klient macOS dla ipincamp/yt2dl z dodatkowym silnikiem lokalnym.")
+                    Text("YT2DL · 1.1.0 All-in-One\nNatywny klient macOS dla ipincamp/yt2dl z wbudowanym silnikiem pobierania.")
+                    Button("Licencje i składniki") {
+                        NSWorkspace.shared.open(Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/ThirdParty"))
+                    }
                     Link("Projekt źródłowy yt2dl", destination: URL(string: "https://github.com/ipincamp/yt2dl")!)
                 }
             }
