@@ -14,6 +14,9 @@ struct Options: Codable, Equatable {
     var mode = MediaMode.movie
     var height = 1080
     var audioFormat = "mp3"
+    // Optional fields preserve settings and history from older versions.
+    var audioBitrate: Int? = 0
+    var parallelFragments: Int? = 4
     var videoContainer: VideoContainer? = .mp4
     var container: VideoContainer { videoContainer ?? .mp4 }
     var subtitles = false
