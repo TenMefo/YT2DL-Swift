@@ -22,11 +22,23 @@ enum LocalEngine {
     }
     static func arguments(_ job: Job) -> [String] {
         let o = job.options
-        var a = common(o) + ["--no-playlist", "--progress", "--newline", "--continue", "--no-overwrites",
+        var a = common(o) + ["--no-playlist", "--progress", "--progress-delta", "0.3", "--newline", "--continue", "--no-overwrites",
+            "--concurrent-fragments", String(min(8, max(1, o.parallelFragments ?? 4))),
             "--progress-template", "download:PROGRESS:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
             "--print", "after_move:FILE:%(filepath)s", "-P", o.folder, "-o", "%(title).150B [%(id)s].%(ext)s"]
         switch o.mode {
-        case .audio: a += ["-f", "bestaudio/best", "-x", "--audio-format", o.audioFormat]
+        case .audio:
+            let format: String
+            switch o.audioFormat {
+            case "m4a": format = "bestaudio[ext=m4a]/bestaudio/best"
+            case "opus": format = "bestaudio[acodec=opus]/bestaudio/best"
+            default: format = "bestaudio/best"
+            }
+            a += ["-f", format, "-x", "--audio-format", o.audioFormat]
+            if ["mp3", "m4a", "opus"].contains(o.audioFormat) {
+                let bitrate = o.audioBitrate ?? 0
+                a += ["--audio-quality", [128, 192, 256, 320].contains(bitrate) ? "\(bitrate)K" : "0"]
+            }
         case .movie:
             let format = o.container == .mp4
                 ? "bestvideo[ext=mp4][vcodec^=avc1][height<=\(o.height)]+bestaudio[ext=m4a]/best[ext=mp4][height<=\(o.height)]/bestvideo[ext=mp4][height<=\(o.height)]+bestaudio[ext=m4a]"
