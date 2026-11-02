@@ -31,4 +31,13 @@ cp -R "$APP" "$TEST_DIR/Folder with spaces/YT2DL.app"
 "$TOOLS/ffmpeg" -v error -i "$TEST_DIR/input.wav" -c:a aac "$TEST_DIR/audio.m4a"
 "$TOOLS/ffmpeg" -v error -i "$TEST_DIR/audio.m4a" -c copy -movflags +faststart "$TEST_DIR/output.mp4"
 "$TOOLS/ffprobe" -v error -show_entries format=format_name -of default=nw=1 "$TEST_DIR/output.mp4" | grep -q mp4
-echo "Standalone bundle verification passed (including MP4)"
+"$TOOLS/ffmpeg" -v error -i "$TEST_DIR/input.wav" -c:a aac -b:a 192k "$TEST_DIR/output.m4a"
+"$TOOLS/ffmpeg" -v error -i "$TEST_DIR/input.wav" -c:a flac "$TEST_DIR/output.flac"
+for extension in mp3 m4a opus flac; do
+    "$TOOLS/ffprobe" -v error -show_entries stream=codec_type -of csv=p=0 "$TEST_DIR/output.$extension" > "$TEST_DIR/streams"
+    grep -q audio "$TEST_DIR/streams"
+    if grep -q video "$TEST_DIR/streams"; then
+        echo "Unexpected video in audio-only output"; exit 1
+    fi
+done
+echo "Standalone bundle verification passed (MP4 and MP3/M4A/Opus/FLAC)"
