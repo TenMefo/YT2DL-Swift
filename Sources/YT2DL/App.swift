@@ -50,6 +50,7 @@ struct ContentView: View {
                 .shadow(radius: 8).padding(20)
             }
         }
+        .onChange(of: s.options) { _, _ in s.save() }
         .tint(.indigo)
         .alert("Nie udało się wykonać operacji", isPresented: Binding(get: { s.error != nil }, set: { if !$0 { s.error = nil } })) {
             Button("OK") { s.error = nil }
@@ -62,6 +63,9 @@ struct ContentView: View {
         HSplitView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Co dzisiaj pobieramy?").font(.system(size: 28, weight: .bold))
+                Picker("Co pobrać", selection: $s.options.mode) {
+                    ForEach(MediaMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }.pickerStyle(.segmented)
                 Text("Wklej link do filmu lub playlisty. Możesz podać kilka linków, każdy w osobnym wierszu.").foregroundStyle(.secondary)
                 TextEditor(text: $s.input).font(.body.monospaced()).frame(height: 80).padding(8)
                     .background(.background, in: RoundedRectangle(cornerRadius: 10))
@@ -182,8 +186,21 @@ struct SettingsView: View {
                         Text("MP4 preferuje obraz H.264 i audio AAC. MKV pozwala wybrać najlepsze dostępne kodeki. Jakość zależy od źródła; zapis bez ponownej kompresji.").font(.caption).foregroundStyle(.secondary)
                     } else {
                         Picker("Format audio", selection: $s.options.audioFormat) {
+                            Text("Oryginalne — bez konwersji").tag("best")
                             ForEach(["mp3", "m4a", "opus", "flac"], id: \.self) { Text($0.uppercased()).tag($0) }
                         }
+                        if ["mp3", "m4a", "opus"].contains(s.options.audioFormat) {
+                            Picker("Bitrate przy konwersji", selection: Binding(get: { s.options.audioBitrate ?? 0 }, set: { s.options.audioBitrate = $0 })) {
+                                Text("Najlepsza dostępna").tag(0)
+                                ForEach([128, 192, 256, 320], id: \.self) { Text("\($0) kb/s").tag($0) }
+                            }
+                        }
+                        Text(s.options.audioFormat == "best"
+                             ? "Oryginalny dźwięk bez zbędnej konwersji — najszybsza opcja. Rozszerzenie zależy od źródła."
+                             : s.options.audioFormat == "flac"
+                             ? "FLAC zajmuje więcej miejsca. Nie przywraca jakości utraconej w źródle."
+                             : "MP3 jest najbardziej uniwersalne. M4A i Opus mogą uniknąć konwersji, gdy kodek źródła jest zgodny. Bitrate dotyczy konwersji. Wyższy bitrate nie poprawi jakości źródła.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                     Toggle("Zapisz napisy PL / EN", isOn: $s.options.subtitles)
                     Toggle("Dodaj metadane", isOn: $s.options.metadata)
@@ -197,6 +214,10 @@ struct SettingsView: View {
                 Button("Wybierz folder…") { s.chooseFolder() }
             }
             if s.options.engine == .local {
+                Section("Wydajność") {
+                    Stepper("Fragmenty równolegle: \(s.options.parallelFragments ?? 4)", value: Binding(get: { s.options.parallelFragments ?? 4 }, set: { s.options.parallelFragments = $0 }), in: 1...8)
+                    Text("Może przyspieszyć pobieranie materiałów dzielonych na fragmenty. Przy problemach z siecią ustaw 1.").font(.caption).foregroundStyle(.secondary)
+                }
                 Section("Playlisty i biblioteka") {
                     Stepper("Limit podglądu: \(s.options.limit)", value: $s.options.limit, in: 10...1000, step: 10)
                     Picker("Logowanie z przeglądarki", selection: $s.options.cookieBrowser) {
@@ -211,13 +232,13 @@ struct SettingsView: View {
             }
             if !compact {
                 Section("O aplikacji") {
-                    Text("YT2DL · 1.2.0 All-in-One\nNatywny klient macOS dla ipincamp/yt2dl z wbudowanym silnikiem pobierania.")
+                    Text("YT2DL · 1.3.0 All-in-One\nNatywny klient macOS dla ipincamp/yt2dl z wbudowanym silnikiem pobierania.")
                     Button("Licencje i składniki") {
                         NSWorkspace.shared.open(Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/ThirdParty"))
                     }
                     Link("Projekt źródłowy yt2dl", destination: URL(string: "https://github.com/ipincamp/yt2dl")!)
                 }
             }
-        }.formStyle(.grouped).onChange(of: s.options) { _, _ in s.save() }
+        }.formStyle(.grouped)
     }
 }
