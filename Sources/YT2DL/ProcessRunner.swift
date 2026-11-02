@@ -6,7 +6,7 @@ final class ProcessRunner: @unchecked Sendable {
     private var process: Process?
     private var cancelled = false
     func cancel() { lock.lock(); cancelled = true; let p = process; lock.unlock(); if p?.isRunning == true { p?.interrupt() } }
-    func run(_ executable: String, _ arguments: [String], line: @escaping @Sendable (String) -> Void = { _ in }) async throws -> Data {
+    func run(_ executable: String, _ arguments: [String], captureOutput: Bool = true, line: @escaping @Sendable (String) -> Void = { _ in }) async throws -> Data {
         try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let p = Process(), output = Pipe(), error = Pipe()
@@ -35,7 +35,7 @@ final class ProcessRunner: @unchecked Sendable {
                     let chunk = output.fileHandleForReading.availableData
                     if chunk.isEmpty { break }
                     // Download output is small; metadata capped by playlist-end.
-                    result.append(chunk); pending.append(chunk)
+                    if captureOutput { result.append(chunk) }; pending.append(chunk)
                     while let range = pending.firstRange(of: Data([10])) {
                         line(String(decoding: pending[..<range.lowerBound], as: UTF8.self))
                         pending.removeSubrange(..<range.upperBound)
