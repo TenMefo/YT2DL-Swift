@@ -19,6 +19,7 @@ import AppKit
     private var activeDownload: ServerDownload?
     private var activeID: UUID?
     private var inspectedOptions: Options?
+    private let persistenceQueue = DispatchQueue(label: "pl.mefosoft.yt2dl.history", qos: .utility)
     private let historyURL: URL
     init() {
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("YT2DL")
@@ -31,9 +32,16 @@ import AppKit
     }
     func save() {
         UserDefaults.standard.set(try? JSONEncoder().encode(options), forKey: "options")
-        do { try FileManager.default.createDirectory(at: historyURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try JSONEncoder().encode(jobs).write(to: historyURL, options: .atomic)
-        } catch { self.error = "Nie można zapisać historii: \(error.localizedDescription)" }
+        let snapshot = jobs, destination = historyURL
+        persistenceQueue.async { [weak self] in
+            do {
+                try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try JSONEncoder().encode(snapshot).write(to: destination, options: .atomic)
+            } catch {
+                let message = "Nie można zapisać historii: \(error.localizedDescription)"
+                Task { @MainActor [weak self] in self?.error = message }
+            }
+        }
     }
     func inspect() {
         guard !busy else { return }
@@ -45,12 +53,13 @@ import AppKit
         Task {
             defer { busy = false; inspector = nil }
             var found: [Video] = [], failures: [String] = []
+            var seen = Set<String>()
             for link in links {
                 do {
                     let list: [Video]
                     if snapshot.engine == .local { list = try await LocalEngine.inspect(link, options: snapshot, runner: runner) }
                     else { list = [try await ServerAPI.inspect(link, base: snapshot.server)] }
-                    for video in list where !found.contains(where: { $0.id == video.id }) { found.append(video) }
+                    for video in list where seen.insert(video.id).inserted { found.append(video) }
                 } catch is CancellationError { return }
                 catch { failures.append(error.localizedDescription) }
             }
@@ -92,7 +101,7 @@ import AppKit
                 try FileManager.default.createDirectory(atPath: job.options.folder, withIntermediateDirectories: true)
                 if job.options.engine == .local {
                     let runner = ProcessRunner(); activeRunner = runner
-                    _ = try await runner.run(try BundledTools.executable(options: job.options), LocalEngine.arguments(job)) { [weak self] line in
+                    _ = try await runner.run(try BundledTools.executable(options: job.options), LocalEngine.arguments(job), captureOutput: false) { [weak self] line in
                         Task { @MainActor in self?.update(id, line: line) }
                     }
                 } else {
@@ -136,5 +145,5 @@ import AppKit
         if let file = job.file { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: file)]) }
         else { NSWorkspace.shared.open(URL(fileURLWithPath: job.options.folder)) }
     }
-    func shutdown() { inspector?.cancel(); activeRunner?.cancel(); activeDownload?.cancel(); save() }
+    func shutdown() { inspector?.cancel(); activeRunner?.cancel(); activeDownload?.cancel(); save(); persistenceQueue.sync {} }
 }
