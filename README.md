@@ -23,6 +23,11 @@ Paczka podpisana ad hoc nie ma notaryzacji Apple. Pierwsze uruchomienie może wy
 
 Biblioteka YouTube nie jest pojedynczą playlistą — wklej link do konkretnej listy, np. Do obejrzenia. Niektóre filmy, metadane lub napisy mogą być niedostępne. Jakość zależy od źródła.
 
+## Audio i wydajność (1.3)
+Wybierz „Tylko audio” na ekranie pobierania. Dostępne formaty to MP3, M4A, Opus, FLAC oraz oryginalny („bez konwersji”). Bitrate 128–320 kb/s lub najlepsza jakość dotyczy konwersji stratnej; przy zgodnym kodeku M4A/Opus silnik może skopiować strumień. FLAC nie poprawia jakości źródła.
+
+W ustawieniach wydajności można wybrać 1–8 równoległych fragmentów (domyślnie 4). Pomaga to przy źródłach dzielonych na fragmenty; rzeczywista prędkość zależy od serwera i łącza. Historia zapisuje się poza głównym wątkiem, postęp lokalny odświeża się co 0,3 s, a podgląd usuwa duplikaty za pomocą zbioru.
+
 ## Aktualizacje
 Wbudowane silniki są dostarczane wraz z kolejnymi wersjami aplikacji. Po zmianach YouTube może być potrzebna aktualizacja całej aplikacji. Program nie modyfikuje podpisanego pakietu w tle.
 
